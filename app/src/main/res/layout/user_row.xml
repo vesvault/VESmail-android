@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/stat"
+            android:background="@drawable/stat_bullet"
+            android:layout_width="8pt"
+            android:layout_height="8pt"
+            android:layout_gravity="bottom"
+            android:layout_margin="4pt"
+            />
+        <TextView
+            android:id="@+id/user"
+            android:fontFamily="sans-serif"
+            android:textSize="12pt"
+            android:text="user"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:singleLine="true"
+            />
+        <ImageView
+                android:id="@+id/profile"
+                android:background="@drawable/ic_baseline_settings_24"
+                android:layout_width="12pt"
+                android:layout_height="12pt"
+                android:layout_gravity="bottom"
+                android:layout_margin="4dp"
+                />
+</TableRow>

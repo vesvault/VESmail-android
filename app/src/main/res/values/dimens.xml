@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="bullet_border">1dp</dimen>
+    <dimen name="bullet_grad">6dp</dimen>
+</resources>

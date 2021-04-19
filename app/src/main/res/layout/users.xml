@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:padding="8dp"
+    >
+    <TextView
+        android:text=""
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textStyle="italic"
+        android:layout_gravity="start"
+        android:textSize="8pt"
+        android:textColor="@color/vesmail"
+        android:id="@+id/users_status"
+        />
+    <ScrollView
+                android:layout_span="2"
+                android:layout_weight="2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                >
+                    <TableLayout
+                        android:id="@+id/users"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                    </TableLayout>
+            </ScrollView>
+</LinearLayout>
