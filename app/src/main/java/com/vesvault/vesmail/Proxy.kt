@@ -18,13 +18,8 @@ public class Proxy : Service() {
         public external fun signal(sig: Int)
         public external fun getdaemons(obj: Any): Int
         public external fun getusers(obj: Any, last: Int): IntArray
+        public external fun getuserprofileurl(idx: Int): String?
         public var watched: Boolean = false
-
-        override fun onCreate() {
-
-                Log.d("proxy", "onCreate")
-                super.onCreate()
-        }
 
         override fun onBind(intent: Intent?): IBinder? {
                 return ProxyBinder()
@@ -39,15 +34,12 @@ public class Proxy : Service() {
                         }
                 val nb: Notification.Builder
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        val name = getString(R.string.channel_name)
-                        val descriptionText = getString(R.string.channel_description)
-                        val importance = NotificationManager.IMPORTANCE_LOW
                         val mChannel = NotificationChannel(
                                 getString(R.string.channel_id),
-                                name,
-                                importance
+                                getString(R.string.channel_name),
+                                NotificationManager.IMPORTANCE_LOW
                         )
-                        mChannel.description = descriptionText
+                        mChannel.description = getString(R.string.channel_description)
                         val notificationManager =
                                 getSystemService(NOTIFICATION_SERVICE) as NotificationManager
                         notificationManager.createNotificationChannel(mChannel)

@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         view = layoutInflater.inflate(R.layout.activity_main, null)
         setContentView(view)
         view!!.findViewById<Button>(R.id.profile_button).setOnClickListener {
-            openprofile(null)
+            openprofile(null, -1)
         }
     }
 
@@ -65,9 +65,14 @@ class MainActivity : AppCompatActivity() {
         fwatch = false
     }
 
-    private fun openprofile(p: String?) {
-        var url: String = "https://vesmail.email/profile/?local=1"
-        if (p != null) url += "&p=" + URLEncoder.encode(p, "utf-8")
+    private fun openprofile(p: String?, idx: Int) {
+        var url: String? = null
+        if (p != null) url = Proxy.Instance?.getuserprofileurl(idx)
+        if (url == null || !url.startsWith("https://")) url = "https://my.vesmail.email/profile"
+        url += if (url.contains('?')) "&"
+            else "?"
+        url += "local=1&p="
+        if (p != null) url += URLEncoder.encode(p, "utf-8")
         startActivity(Intent()
                 .setAction(Intent.ACTION_VIEW)
                 .addCategory(Intent.CATEGORY_BROWSABLE)
@@ -80,9 +85,9 @@ class MainActivity : AppCompatActivity() {
         val tbl: TableLayout = view!!.findViewById(R.id.daemons)
         val tr: TableRow = layoutInflater.inflate(R.layout.proxy_row, null) as TableRow
         tbl.addView(tr)
-        tr.findViewById<TextView>(R.id.srv).text = srv
-        tr.findViewById<TextView>(R.id.host).text = host
-        tr.findViewById<TextView>(R.id.port).text = port
+        tr.findViewById<TextView?>(R.id.srv)?.text = srv
+//        tr.findViewById<TextView?>(R.id.host)?.text = host
+        tr.findViewById<TextView?>(R.id.port)?.text = port
         daemonidx[tbl.childCount - 1] = idx
     }
 
@@ -96,7 +101,7 @@ class MainActivity : AppCompatActivity() {
         }
         tr.findViewById<TextView>(R.id.user).text = login
         tr.findViewById<ImageView>(R.id.profile).setOnClickListener {
-            openprofile(login)
+            openprofile(login, idx)
         }
     }
 

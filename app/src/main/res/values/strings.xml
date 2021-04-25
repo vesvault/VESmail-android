@@ -4,9 +4,9 @@
     <string name="channel_name">VESmail Proxy</string>
     <string name="channel_description">IMAP/SMTP email encryption</string>
     <string name="channel_id">VESmail</string>
-    <string name="profile_button">Connect Email</string>
-    <string name="daemons_loading">Initializing VESmail Proxy connection...</string>
-    <string name="daemons_running">VESmail Proxy is running</string>
-    <string name="users_empty">No users connected</string>
-    <string name="users_list">Connected VESmail users:</string>
+    <string name="profile_button">Add Email</string>
+    <string name="daemons_loading">Initializing VESmail App connection...</string>
+    <string name="daemons_running">VESmail App on this device:</string>
+    <string name="users_empty">No accounts connected</string>
+    <string name="users_list">Connected email accounts:</string>
 </resources>
