@@ -1,0 +1,21 @@
+Installation Instructions
+*************************
+
+Relies on VESmail -
+git@github.com:vesvault/VESmail.git
+
+Put the Android dir in VESmail/app dir (VESmail/app/VESmail-android),
+or adjust the native code path.
+
+libVES.so has to be built first -
+git@github.com:vesvault/libVES.c.git
+lib/Android.mk
+
+curl and openssl libs are required to build both libVES.c and VESmail.
+(libcurl, libcrypto, libssl)
+
+Suggested prebuilt binaries:
+git@github.com:robertying/openssl-curl-android.git
+(use LOCAL_WHOLE_STATIC_LIBRARIES in libVES.c/lib/Android.mk)
+
+Use Android Studio to build and deploy.
