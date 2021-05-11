@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.graphics.drawable.ShapeDrawable
 import android.graphics.drawable.shapes.Shape
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -30,17 +31,33 @@ class MainActivity : AppCompatActivity() {
         R.drawable.stat_bullet_a,
         R.drawable.stat_bullet_e
     )
-    val daemonidx: IntArray = IntArray(64)
-    var stat: IntArray = IntArray(0)
     var ustat: IntArray = IntArray(0)
+    var uerror: IntArray = IntArray(0)
     var fproxy: Boolean = false
     var fwatch: Boolean = false
     var fwatching: Boolean = false
     private val timer: Timer = Timer()
+    var spinner: Spinner? = null
+    var daemons: Daemon? = null
+    var derror: Daemon? = null
+    var handler: Handler? = null
     val B_NONE = 0
     val B_CONN = 1
     val B_ACTN = 2
     val B_ERR = 3
+    val watchfn = Runnable {
+        watch()
+    }
+    val blinkfn = Runnable {
+        showstat(false)
+    }
+
+    class Daemon constructor(_idx: Int, _srv: String, _host: String, _port: String) {
+        val idx: Int = _idx
+        val srv: String = _srv
+        val port: String = _port
+        public var chain: Daemon? = null
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,8 +67,10 @@ class MainActivity : AppCompatActivity() {
         view = layoutInflater.inflate(R.layout.activity_main, null)
         setContentView(view)
         view!!.findViewById<Button>(R.id.profile_button).setOnClickListener {
-            openprofile(null, -1)
+            val p: String? = if (ustat.isNotEmpty()) "" else null
+            openprofile(p, -1)
         }
+        spinner = Spinner(view!!.findViewById(R.id.spinner))
     }
 
     override fun onResume() {
@@ -66,33 +85,35 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openprofile(p: String?, idx: Int) {
-        var url: String? = null
-        if (p != null) url = Proxy.Instance?.getuserprofileurl(idx)
-        if (url == null || !url.startsWith("https://")) url = "https://my.vesmail.email/profile"
-        url += if (url.contains('?')) "&"
-            else "?"
-        url += "local=1&p="
-        if (p != null) url += URLEncoder.encode(p, "utf-8")
-        startActivity(Intent()
-                .setAction(Intent.ACTION_VIEW)
-                .addCategory(Intent.CATEGORY_BROWSABLE)
-                .setData(Uri.parse(url)))
+        startActivity(Proxy.Instance?.profileintent(p, idx))
     }
 
     private fun setdaemon(idx: Int, srv: String, host: String, port: String) {
         android.util.Log.d("daemon",idx.toString() + ':' + srv + ':' + host + ':' + port)
         if (srv == "now") return
-        val tbl: TableLayout = view!!.findViewById(R.id.daemons)
-        val tr: TableRow = layoutInflater.inflate(R.layout.proxy_row, null) as TableRow
-        tbl.addView(tr)
-        tr.findViewById<TextView?>(R.id.srv)?.text = srv
-//        tr.findViewById<TextView?>(R.id.host)?.text = host
-        tr.findViewById<TextView?>(R.id.port)?.text = port
-        daemonidx[tbl.childCount - 1] = idx
+        var d: Daemon? = daemons
+        if (d == null) {
+            daemons = Daemon(idx, srv, host, port)
+            return
+        }
+        while (true) {
+            if (d!!.srv == srv) return
+            if (d!!.chain != null) {
+                d = d.chain
+            } else {
+                d!!.chain = Daemon(idx, srv, host, port)
+                return
+            }
+        }
     }
 
     private fun setuser(idx: Int, login: String) {
         android.util.Log.d("user", idx.toString() + ':' + login)
+        if (spinner != null) {
+            spinner?.remove()
+            spinner = null
+            view!!.findViewById<TextView>(R.id.users_status).text = getText(R.string.users_list)
+        }
         val tbl: TableLayout = view!!.findViewById(R.id.users)
         var tr: TableRow? = tbl.getChildAt(idx) as TableRow?
         if (tr == null) {
@@ -113,11 +134,16 @@ class MainActivity : AppCompatActivity() {
     private fun proxy(): Boolean {
         if (fproxy) return true
         if (Proxy.Instance == null) return false
-        Proxy.Instance!!.watched = true
         Proxy.Instance!!.getdaemons(this)
-        view!!.findViewById<TextView>(R.id.daemon_status).text = getText(R.string.daemons_running)
         fproxy = true
         return true
+    }
+
+    private fun bullet(b: Int): Drawable {
+        if (bullets[b] == null) {
+            bullets[b] = ContextCompat.getDrawable(applicationContext, bulletRcs[b])
+        }
+        return bullets[b]!!
     }
 
     private fun setbullet(img: ImageView, st: Int, flg: Boolean): Boolean {
@@ -138,52 +164,73 @@ class MainActivity : AppCompatActivity() {
                 b = B_NONE
             }
         } else b = B_ERR
-        if (bullets[b] == null) {
-            bullets[b] = ContextCompat.getDrawable(applicationContext, bulletRcs[b])
-        }
-        img.background = bullets[b]
+        img.background = bullet(b)
         return rs
     }
 
     private fun showstat(flg: Boolean): Boolean {
-        val tbl: TableLayout = view!!.findViewById(R.id.daemons)
-        var idx = 0
-        var rs = false
-        while (true) {
-            val ch = tbl.getChildAt(idx) ?: break
-            val st = stat[daemonidx[idx++]]
-            if (setbullet(ch.findViewById<ImageView>(R.id.stat), st, flg)) rs = true
+        if (spinner != null) {
+            spinner?.step(bullet(1), bullet(2))
+            return true
         }
         val utbl: TableLayout = view!!.findViewById(R.id.users)
-        idx = 0
+        var idx = 0
+        var rs = false
         while (true) {
             val ch = utbl.getChildAt(idx) ?: break
             val st = ustat[idx++]
             if (setbullet(ch.findViewById<ImageView>(R.id.stat), st, flg)) rs = true
+            if ((st and 0x8000) != 0) {
+                if (uerror.size <= idx) uerror = uerror.copyOf(idx + 1)
+                if (uerror[idx] == 0) {
+                    ch.findViewById<ImageView>(R.id.profile).background = ContextCompat.getDrawable(applicationContext, R.drawable.ic_baseline_settings_e_24)
+                    uerror[idx] = 1;
+                }
+            } else if (idx < uerror.size && uerror[idx] != 0) {
+                ch.findViewById<ImageView>(R.id.profile).background = ContextCompat.getDrawable(applicationContext, R.drawable.ic_baseline_settings_24)
+                uerror[idx] = 0;
+            }
         }
         return rs
     }
 
-    private fun watch() {
-        if (proxy()) {
-            stat = Proxy.Instance!!.watch()
-            ustat = Proxy.Instance!!.getusers(this, view!!.findViewById<TableLayout>(R.id.users).childCount)
-            val blink = showstat(true)
-            if (blink) timer.schedule(125) {
-                runOnUiThread {
-                    showstat(false)
-                }
-            }
-            val uhdr: Int =
-                if (ustat.isNotEmpty()) R.string.users_list
-                else R.string.users_empty
-            view!!.findViewById<TextView>(R.id.users_status).text = getText(uhdr)
+    private fun daemonerror(d: Daemon?) {
+        if (d == derror) return
+        derror = d
+        val st: TextView = view!!.findViewById(R.id.users_status)
+        val color: Int
+        if (d != null) {
+            st.text = getString(R.string.proxy_error).replaceFirst("%s", d.port)
+            color = R.color.vesmail_error
+        } else {
+            st.text = getString(R.string.users_list)
+            color = R.color.vesmail
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+            st.setTextColor(resources.getColor(color, theme))
+        else
+            st.setTextColor(resources.getColor(color))
+    }
+
+    private fun watch() {
+        if (handler == null) handler = Handler(mainLooper)
         fwatching = fwatch
-        if (fwatching) timer.schedule(250) {
-            runOnUiThread {
-                watch()
+        if (fwatching) handler!!.postDelayed(watchfn, 250)
+        if (proxy()) {
+            Proxy.Instance!!.watched = true
+            val stat = Proxy.Instance!!.watch()
+            var d: Daemon? = daemons
+            while (d != null) {
+                if ((stat[d.idx] and 0x0002) != 0) {
+                    break
+                }
+                d = d.chain
             }
+            daemonerror(d)
+            ustat = Proxy.Instance!!.getusers(this, view!!.findViewById<TableLayout>(R.id.users).childCount)
+            Proxy.Instance!!.usererrors(ustat)
+            val blink = showstat(true)
+            if (blink) handler!!.postDelayed(blinkfn, 125)
         }
     }
 

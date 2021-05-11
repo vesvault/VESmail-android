@@ -8,6 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="vesmail">#FF545174</color>
+    <color name="vesmail_error">#FFBF3F00</color>
     <color name="bar">#FF2F005F</color>
     <color name="bullet_border">#FF7F7F7F</color>
     <color name="bg">#FFDFDFDF</color>

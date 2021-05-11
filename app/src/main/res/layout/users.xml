@@ -6,15 +6,20 @@
     android:padding="8dp"
     >
     <TextView
-        android:text=""
+        android:text="@string/users_empty"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="italic"
         android:layout_gravity="start"
-        android:textSize="8pt"
+        android:textSize="9pt"
         android:textColor="@color/vesmail"
         android:id="@+id/users_status"
+        android:maxLines="1"
+        android:ellipsize="end"
         />
+    <include
+        android:id="@+id/spinner"
+        layout="@layout/spinner" />
     <ScrollView
                 android:layout_span="2"
                 android:layout_weight="2"
