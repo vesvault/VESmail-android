@@ -1,12 +1,32 @@
 <resources>
     <string name="app_name">VESmail</string>
     <string name="notification_title">VESmail Encryption Proxy is active</string>
-    <string name="channel_name">VESmail Proxy</string>
-    <string name="channel_description">IMAP/SMTP email encryption</string>
+    <string name="channel_name">VESmail is running</string>
+    <string name="channel_description">VESmail IMAP/SMTP email encryption proxy is running on the background and is accepting connections from email apps</string>
     <string name="channel_id">VESmail</string>
     <string name="profile_button">Add Email</string>
-    <string name="daemons_loading">Initializing VESmail App connection...</string>
-    <string name="daemons_running">VESmail App on this device:</string>
-    <string name="users_empty">No accounts connected</string>
+    <string name="users_empty">Waiting for connection from your email app</string>
     <string name="users_list">Connected email accounts:</string>
+    <string name="channelL_id">VESmailErrorLocal</string>
+    <string name="channelL_name">VESmail bad email app settings</string>
+    <string name="channelL_description">The settings in your local email app that are pointing to the VESmail proxy are incorrect or incomplete</string>
+    <string name="channelR_id">VESmailErrorRemote</string>
+    <string name="channelR_name">VESmail bad remote settings</string>
+    <string name="channelR_description">The settings in your VESmail profile are incorrect or incomplete, or there are problems with your email provider servers</string>
+    <string name="XVES_REMOTE">Bad settings in the VESmail profile or email server error</string>
+    <string name="XVES_UNKNOWN">%s %s: Click to review the profile</string>
+    <string name="XVES_LOCAL">Bad settings in the local email app</string>
+    <string name="XVES_3_7">Bad %s username: %s. Click to find the correct VESmail settings</string>
+    <string name="XVES_3_4">Bad %s username or password for %s: Click to find the correct VESmail settings.</string>
+    <string name="XVES_7">%s %s: Click to check the settings and save the profile</string>
+    <string name="XVES_16">Bad %s hostname for %s, or a problem with the server. Click to review.</string>
+    <string name="XVES_17">Connection problem to %s server for %s. Click to review.</string>
+    <string name="XVES_18">TLS error on %s server for %s. Click to review.</string>
+    <string name="XVES_19">SASL error for %s server for %s. Click to review.</string>
+    <string name="XVES_20">Bad response from %s server for %s. Click to review.</string>
+    <string name="XVES_22">VESmail Enterprise server error for %s %s. Contact the enterprise administrator.</string>
+    <string name="XVES_31">%s authentication error for %s. Click to review.</string>
+    <string name="proxy_error">Error on localhost:%s. Try restarting the device.</string>
+
+
 </resources>
