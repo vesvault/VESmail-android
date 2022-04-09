@@ -27,6 +27,14 @@
     <string name="XVES_22">VESmail Enterprise server error for %s %s. Contact the enterprise administrator.</string>
     <string name="XVES_31">%s authentication error for %s. Click to review.</string>
     <string name="proxy_error">Error on localhost:%s. Try restarting the device.</string>
-
+    <string name="SNIFAUTH">Start using VESmail</string>
+    <string name="SNIFAUTHtxt">Click to initialize the VESmail App and to set up encryption for your email address</string>
+    <string name="snif_auth">Click \'Add Email\' to initialize the app</string>
+    <string name="snif_init">Initializing SNIF end-to-end connection...</string>
+    <string name="snif_error">SNIF certificate error. Try restarting the device</string>
+    <string name="standby_prompt">No email address appearing?</string>
+    <string name="standby_prompt_txt1">a) Did you forget to configure your email app with VESmail settings?</string>
+    <string name="standby_prompt_txt2">b) If your configured accounts don’t appear after a few seconds, open your email app and select Get Mail for a configured account.</string>
+    <string name="version">version&#160;</string>
 
 </resources>

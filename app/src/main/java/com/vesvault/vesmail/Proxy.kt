@@ -5,15 +5,23 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.os.*
+import android.os.Build
+import android.os.Handler
+import android.os.IBinder
+import android.os.PowerManager
+import android.security.keystore.KeyProperties
+import android.security.keystore.KeyProtection
 import android.util.Log
 import java.net.URLEncoder
-import java.util.*
-import kotlin.concurrent.schedule
+import java.security.KeyStore
+import javax.crypto.SecretKey
+import javax.crypto.SecretKeyFactory
+import javax.crypto.spec.SecretKeySpec
 
 
 public class Proxy : Service() {
         var uerror: Array<Notification.Builder?> = arrayOf()
+        var snifalert: Notification.Builder? = null
         private val standbyfn: Runnable = Runnable {
                 if (wakect == 1) sleep(this)
                 val active = standby()
@@ -33,6 +41,12 @@ public class Proxy : Service() {
         public external fun getuserprofileurl(idx: Int): String?
         public external fun getusererror(idx: Int): String?
         public external fun sleep(obj: Any?)
+        public external fun snif(cert: String, pkey: String, passphrase: String?, initurl: String?): Boolean
+        public external fun snifstat(): Int
+        public external fun snifhost(): String?
+        public external fun snifauthurl(): String?
+        public external fun snifawake(awake: Boolean)
+        public external fun feedback(): String?
         public var watched: Boolean = false
         private val wakeidle = 8
         private var wakect: Int = 0
@@ -90,8 +104,20 @@ public class Proxy : Service() {
                         val cert = ks.getCertificate(alias);
                         addcert(cert.encoded)
                 }
+                val fdir = filesDir.path;
                 start()
                 Instance = this
+
+                val prfs = getSharedPreferences("snif", Context.MODE_PRIVATE)
+                var pass = prfs.getString("seed", "");
+                if (pass == "") {
+                        pass = String(kotlin.random.Random.nextBytes(32)).replace(0.toChar(), '.')
+                        val ed = prfs.edit()
+                        ed.putString("seed", pass)
+                        ed.commit()
+                }
+
+                snif(fdir + "/snif.crt", fdir + "/snif.pem", pass, null)
 
                 val alm = getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val alarmIntent = Intent(this, Boot::class.java)
@@ -127,8 +153,14 @@ public class Proxy : Service() {
                 if (url == null || !url.startsWith("https://")) url = "https://my.vesmail.email/profile"
                 url += if (url.contains('?')) "&"
                 else "?"
-                url += "local=1&p="
-                if (p != null) url += URLEncoder.encode(p, "utf-8")
+                val snif = snifhost()
+                if (snif != null) {
+                        url += "snif=" + snif
+                        if (snifauthurl() != null) url += "&snifauth=1"
+                } else url += "local=1"
+                if (p != null) url += "&p=" + URLEncoder.encode(p, "utf-8")
+                val fbk: String? = feedback()
+                if (fbk != null) url += "&fbk=" + URLEncoder.encode(fbk, "utf-8")
                 val e: String? = Proxy.Instance?.getusererror(idx)
                 if (e != null) url += "#" + e
                 return Intent()
@@ -156,10 +188,31 @@ public class Proxy : Service() {
                         }
                         i++
                 }
+                if (snifauthurl() != null) {
+                        if (snifalert == null && snifhost() != null) {
+                                snifalert = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                                        Notification.Builder(this, getString(R.string.channelL_id))
+                                else
+                                        Notification.Builder(this)
+                                snifalert!!
+                                        .setContentTitle(getString(R.string.SNIFAUTH))
+                                        .setContentText(getString(R.string.SNIFAUTHtxt))
+                                        .setSmallIcon(R.drawable.ic_stat_name)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                                        snifalert!!.setColor(resources.getColor(R.color.vesmail, theme))
+                                }
+                                snifalert!!.setContentIntent(pendingintent(profileintent(null, -1)))
+                                val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                                nm.notify(7123, snifalert!!.build())
+                        }
+                } else if (snifalert != null) {
+                        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        nm.cancel(7123)
+                        snifalert = null
+                }
         }
 
         public fun standby(): Boolean {
-//                Log.d("standby", Timer().toString())
                 var active = watched
                 if (!watched) {
                         val stat = watch()
@@ -196,7 +249,8 @@ public class Proxy : Service() {
                 override fun onReceive(context: Context?, intent: Intent) {
                         android.util.Log.d("proxy", "BroadcastReceiver " + intent.toString() + " " + Proxy.Instance.toString())
                         if  (Instance != null) {
-                                Instance?.setstandby(true, false)
+                                Instance!!.setstandby(true, false)
+                                Instance!!.snifawake(true)
                                 return
                         }
                         Intent(context, Proxy::class.java).also {

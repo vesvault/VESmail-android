@@ -51,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     val blinkfn = Runnable {
         showstat(false)
     }
+    var snif_stat: Int = 0
 
     class Daemon constructor(_idx: Int, _srv: String, _host: String, _port: String) {
         val idx: Int = _idx
@@ -70,7 +71,6 @@ class MainActivity : AppCompatActivity() {
             val p: String? = if (ustat.isNotEmpty()) "" else null
             openprofile(p, -1)
         }
-        spinner = Spinner(view!!.findViewById(R.id.spinner))
     }
 
     override fun onResume() {
@@ -112,7 +112,7 @@ class MainActivity : AppCompatActivity() {
         if (spinner != null) {
             spinner?.remove()
             spinner = null
-            view!!.findViewById<TextView>(R.id.users_status).text = getText(R.string.users_list)
+            snif_stat = 0
         }
         val tbl: TableLayout = view!!.findViewById(R.id.users)
         var tr: TableRow? = tbl.getChildAt(idx) as TableRow?
@@ -194,18 +194,33 @@ class MainActivity : AppCompatActivity() {
         return rs
     }
 
-    private fun daemonerror(d: Daemon?) {
-        if (d == derror) return
+    private fun daemonerror(d: Daemon?, snifst: Int) {
+        if (d == derror && snifst == snif_stat) return
         derror = d
+        snif_stat = snifst
         val st: TextView = view!!.findViewById(R.id.users_status)
         val color: Int
+        val s: Int
         if (d != null) {
-            st.text = getString(R.string.proxy_error).replaceFirst("%s", d.port)
+            s = R.string.proxy_error
             color = R.color.vesmail_error
         } else {
-            st.text = getString(R.string.users_list)
-            color = R.color.vesmail
+            if (snifst < 0) {
+                s = R.string.snif_error
+                color = R.color.vesmail_error
+            } else if (snifst != 1) {
+                s = if (Proxy.Instance!!.snifauthurl() != null) R.string.snif_auth else R.string.snif_init
+                color = R.color.vesmail
+            } else {
+                s = if (ustat.isNotEmpty()) R.string.users_list else R.string.users_empty
+                color = R.color.vesmail
+                if (spinner == null && ustat.isEmpty()) {
+                    spinner = Spinner(view!!.findViewById(R.id.spinner))
+                }
+            }
         }
+        val txt = getString(s)
+        st.text = if (d != null) txt.replaceFirst("%s", d.port) else txt
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
             st.setTextColor(resources.getColor(color, theme))
         else
@@ -226,7 +241,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 d = d.chain
             }
-            daemonerror(d)
+            daemonerror(d, Proxy.Instance!!.snifstat())
             ustat = Proxy.Instance!!.getusers(this, view!!.findViewById<TableLayout>(R.id.users).childCount)
             Proxy.Instance!!.usererrors(ustat)
             val blink = showstat(true)

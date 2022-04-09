@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:layout_marginTop="16pt"
+    android:visibility="invisible"
         >
 <TableLayout
     android:layout_width="32pt"
@@ -105,4 +106,27 @@
                     />
         </TableRow>
 </TableLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/standby_prompt"
+            android:textAlignment="center"
+            android:textSize="8pt"
+            android:textStyle="italic"
+            android:layout_marginTop="16pt"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/standby_prompt_txt1"
+            android:textAlignment="viewStart"
+            android:textStyle="italic"
+            android:textSize="8pt"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/standby_prompt_txt2"
+            android:textAlignment="viewStart"
+            android:textStyle="italic"
+            android:textSize="8pt"/>
 </LinearLayout>

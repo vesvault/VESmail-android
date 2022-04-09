@@ -9,17 +9,18 @@ android {
 
     defaultConfig {
         applicationId "com.vesvault.vesmail"
-        minSdkVersion 16
+        minSdkVersion 21
         targetSdkVersion 30
-        versionCode 155
-        versionName "1.55"
+        versionCode 15951
+        versionName "1.59.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a", "x86"
         }
     }
-
+    applicationVariants.all { variant ->
+        variant.resValue "string", "versionName", variant.versionName
+    }
     buildTypes {
         release {
             minifyEnabled false
